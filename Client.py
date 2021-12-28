@@ -31,12 +31,15 @@ def colored(r, g, b, text):
 
 # Wait for Offer message from one of the available servers
 def look_for_server():
-    clientSocket = socket(AF_INET, SOCK_DGRAM)  # create UDP socket
-    clientSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    clientSocket.bind((clientIP, clientPort))
-    server_message, server_address = clientSocket.recvfrom(2048)  # receive message from server
-    clientSocket.close()  # close UDP connection
-    return server_message, server_address[0]
+    try:
+        clientSocket = socket(AF_INET, SOCK_DGRAM)  # create UDP socket
+        clientSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        clientSocket.bind((clientIP, clientPort))
+        server_message, server_address = clientSocket.recvfrom(2048)  # receive message from server
+        clientSocket.close()  # close UDP connection
+        return server_message, server_address[0]
+    except:
+        print(colored(255, 0, 0, "Somthing went wrong with the UDP connection."))
 
 
 # Check if the received UDP message is a legal offer message
@@ -56,36 +59,38 @@ def check_valid_message(message):
 
 # If the UDP offer message has the correct format, then connect to the offering server
 def connect_to_server(server_ip_address, server_tcp_port):
-    print(colored(197, 39, 229, "Received offer from " + server_ip_address + ", attempting to connect..."))
-    clientSocket = socket(AF_INET, SOCK_STREAM)
-    clientSocket.connect((server_ip_address, server_tcp_port))
-    clientSocket.send((client_name + '\n').encode()) # Send the team name to the server with \n in the end.
-    start_game_message = clientSocket.recv(MAX_BUF_SIZE) # Receive game starting message and question
-    print(start_game_message.decode())  # TODO: take care of exceptions
+    try:
+        print(colored(197, 39, 229, "Received offer from " + server_ip_address + ", attempting to connect..."))
+        clientSocket = socket(AF_INET, SOCK_STREAM)
+        clientSocket.connect((server_ip_address, server_tcp_port))
+        clientSocket.send((client_name + '\n').encode()) # Send the team name to the server with \n in the end.
+        start_game_message = clientSocket.recv(MAX_BUF_SIZE) # Receive game starting message and question
+        print(start_game_message.decode())  # TODO: take care of exceptions
 
-    # The selctor knows to do both receiving messages from the server and recieve input from the keyboard
-    read_sockets = [sys.stdin, clientSocket]
-    old_info_stdin = termios.tcgetattr(sys.stdin)
-    tty.setcbreak(sys.stdin.fileno())
-    readable_sockets = select.select(read_sockets, [], [])[0]
-    if readable_sockets[0] is sys.stdin: # If we need to read input from the keyboard
-        # TODO: check if need to support messages before server welcom message
+        # The selctor knows to do both receiving messages from the server and recieve input from the keyboard
+        read_sockets = [sys.stdin, clientSocket]
+        old_info_stdin = termios.tcgetattr(sys.stdin)
+        tty.setcbreak(sys.stdin.fileno())
+        readable_sockets = select.select(read_sockets, [], [])[0]
+        if readable_sockets[0] is sys.stdin: # If we need to read input from the keyboard
+            # TODO: check if need to support messages before server welcom message
 
-        user_answer = sys.stdin.read(BYTE) # Read one digit in a non blocking way
-        print(colored(242, 155, 26, user_answer)) # Print the digit to the screen
+            user_answer = sys.stdin.read(BYTE) # Read one digit in a non blocking way
+            print(colored(242, 155, 26, user_answer)) # Print the digit to the screen
 
-        if (user_answer.isdigit()): # If the input is really a digit
-            digit_value = ord(user_answer) - ord('0')
-            clientSocket.send(digit_value.to_bytes(1, ENDIAN)) # Send the input to the answer as it's value and not in ascii
-    # else:
-    #   server_message = clientSocket.recv(1024)
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_info_stdin)
+            if (user_answer.isdigit()): # If the input is really a digit
+                digit_value = ord(user_answer) - ord('0')
+                clientSocket.send(digit_value.to_bytes(1, ENDIAN)) # Send the input to the answer as it's value and not in ascii
+        # else:
+        #   server_message = clientSocket.recv(1024)
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_info_stdin)
 
-    game_results_message = clientSocket.recv(MAX_BUF_SIZE) # Get the game result from the server
-    print(colored(25, 239, 25, game_results_message.decode()))
+        game_results_message = clientSocket.recv(MAX_BUF_SIZE) # Get the game result from the server
+        print(colored(25, 239, 25, game_results_message.decode()))
 
-    clientSocket.close() # close TCP socket
-
+        clientSocket.close() # close TCP socket
+    except:
+        print(colored(255, 0, 0, "Somthing went wrong with the TCP connection."))
 
 def main():
     while True:
