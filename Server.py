@@ -3,17 +3,35 @@ import select
 from socket import *
 from struct import *
 import time
+import random
 
 serverIP = '172.1.0.10'
 serverPort = 22222
 
-UDP_broadcast_IP = '172.1.0.255'
+UDP_broadcast_IP = '172.1.0.10'
 UDP_destination_port = 13117
 
 UDP_client_address = (UDP_broadcast_IP, UDP_destination_port)
 
 is_in_game = False
 
+question_bank = {"4 + 4" : 8,
+                 "5 + 2 - 1" : 6,
+                 "5 * 2 - 1" : 9, 
+                 "1 + 2 * 3" : 7, 
+                 "(1 + 1) * 2" : 4,
+                 "3 + 4 + 1" : 8, 
+                 "2 + 4 - 3" : 3,
+                 "1 + 1 + 1 * 0 + 1 + 1 + 1 + 1" : 6,
+                 "4 + 3 - 2" : 5,
+                 "4 * 4 / 2" : 8,
+                 "(4 * 4) / 16" : 1,
+                 "1 + 1 + 1 + 1 + 1 + 1 * 0 + 1 + 1" : 7,
+                 "5 - 4 + 1" : 2,
+                 "25 / 5" : 5,
+                 "(10 + 10 + 10 + 10 + 10) / 10" : 5,
+                 "2 + 2 + 2" : 6,
+                 "3 + 0 + 3 * 0" : 3}
 
 def get_broadcast_message():
     magic_cookie = 0xabcddcba
@@ -48,6 +66,10 @@ def get_winner_name(socket_with_answer, first_client_socket, second_client_socke
         else:
             return first_player_name
 
+def select_random_question():
+    max_len = len(question_bank)
+    question_number = random.randint(0,max_len - 1)
+    return  list(question_bank)[question_number]
 
 def handle_clients(first_client_socket, second_client_socket):
     global is_in_game
@@ -55,14 +77,16 @@ def handle_clients(first_client_socket, second_client_socket):
     first_player_name = first_client_socket.recv(1024).decode()
     second_player_name = second_client_socket.recv(1024).decode()
 
+    selected_question = select_random_question()
+    answer_to_the_question = question_bank.get(selected_question)
     message = """
     Welcome to Quick Maths.
     Player 1: {first_player_name}
     Player 2: {second_player_name}
-    ==
+    ================================ 
     Please answer the following question as fast as you can:
-    How much is 2+2?""".format(first_player_name=first_player_name,
-                               second_player_name=second_player_name)
+    {question}""".format(first_player_name=first_player_name,
+                               second_player_name=second_player_name, question=selected_question)
 
     first_client_socket.send(message.encode())
     second_client_socket.send(message.encode())
@@ -71,14 +95,14 @@ def handle_clients(first_client_socket, second_client_socket):
 
     game_message = """
     Game over!
-    The correct answer was {answer}!""".format(answer=4)
+    The correct answer was {answer}!""".format(answer=answer_to_the_question)
 
     if len(readable) == 0:
         game_message += "\nGame result: Draw\n"
 
     else:
         winner = get_winner_name(readable[0], first_client_socket, second_client_socket,
-                                 first_player_name, second_player_name, 4)
+                                 first_player_name, second_player_name, answer_to_the_question)
         game_message += "\nCongratulations to the winner: {winner}\n".format(winner=winner)
 
     first_client_socket.send(game_message.encode())
