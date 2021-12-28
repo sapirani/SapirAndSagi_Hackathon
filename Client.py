@@ -5,7 +5,7 @@ import select
 import termios
 import tty
 
-client_name = "Team 1\n"
+client_name = "Team 1"
 clientIP = '172.1.0.10'
 clientPort = 13117
 COOKIE_BYTES = 4
@@ -31,10 +31,10 @@ def check_valid_message(message):
     flag = False
     cookie, type, server_tcp_port = unpack('!IBh', message)
     if(cookie != COOKIE_KEY):
-        print("Received message with wrong cookie. Keep waiting for offers \n")
+        print(colored(238, 30, 30,"Received message with wrong cookie. Keep waiting for offers \n"))
 
     elif(type != OFFER_MSG_TYPE):
-        print("Received message with wrong type. Keep waiting for offers \n")
+        print(colored(238, 30, 30,"Received message with wrong type. Keep waiting for offers \n"))
 
     else: flag = True
     
@@ -42,10 +42,10 @@ def check_valid_message(message):
 
 
 def connect_to_server(server_ip_address, server_tcp_port):
-    print("Received offer from " + server_ip_address + ", attempting to connect...")
+    print(colored(197, 39, 229,"Received offer from " + server_ip_address + ", attempting to connect..."))
     clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.connect((server_ip_address,server_tcp_port))
-    clientSocket.send(client_name.encode())
+    clientSocket.send((client_name + '\n').encode())
     welcome_message = clientSocket.recv(1024)
     print (welcome_message.decode()) # TODO: take care of exceptions
 
@@ -55,7 +55,7 @@ def connect_to_server(server_ip_address, server_tcp_port):
     old_settings = termios.tcgetattr(sys.stdin)
     tty.setcbreak(sys.stdin.fileno())
     readable_sockets = select.select(read_sockets, [], [])[0]
-    if readable_sockets[0] is sys.stdin: #TODO: check if need to support messages before sever welcom message
+    if readable_sockets[0] is sys.stdin: #TODO: check if need to support messages before server welcom message
         
         user_answer = sys.stdin.read(1)
 
@@ -70,7 +70,7 @@ def connect_to_server(server_ip_address, server_tcp_port):
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
 
     game_results_message = clientSocket.recv(1024)
-    print (game_results_message.decode())
+    print (colored(25, 239, 25, game_results_message.decode()))
     
     clientSocket.close()
 
@@ -78,9 +78,10 @@ def connect_to_server(server_ip_address, server_tcp_port):
 def main():
 
     while True:
-        print("Client started, listening for offer requests...")
+        print(colored(81, 219, 233, 'Welcome to the Game client! :)'))
+        print(colored(42, 115, 234, "Team name: " + client_name))
+        print(colored(236,242,8, "Client started, listening for offer requests..."))
         server_message, server_ip_address = look_for_server()
-        
         #print("Server ip: " + server_ip_address)
         #print(server_message)
 

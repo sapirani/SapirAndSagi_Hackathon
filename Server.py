@@ -10,7 +10,6 @@ serverPort = 22222
 
 UDP_broadcast_IP = '172.1.0.10'
 UDP_destination_port = 13117
-
 UDP_client_address = (UDP_broadcast_IP, UDP_destination_port)
 
 is_in_game = False
@@ -130,7 +129,7 @@ def receive_clients_tcp():
 
 def main():
     print(colored(81, 219, 233, 'Welcome to the Game server! :)'))
-    print("Server started, listening on IP address", serverIP)
+    print(colored(236,242,8, "Server started, listening on IP address " + serverIP))
     threading.Thread(target=offer_udp).start()
     threading.Thread(target=receive_clients_tcp).start()
 
