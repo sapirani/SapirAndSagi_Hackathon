@@ -14,6 +14,9 @@ TCP_PORT_BYTES = 2
 COOKIE_KEY = 0xabcddcba
 OFFER_MSG_TYPE = 0x2
 
+def colored(r, g, b, text):
+    return "\033[38;2;{};{};{}m{} \033[38;2;255;255;255m".format(r, g, b, text)
+
 # Wait for Offer message from one of the servers
 def look_for_server():
     clientSocket = socket(AF_INET, SOCK_DGRAM) # create UDP socket

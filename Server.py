@@ -33,6 +33,9 @@ question_bank = {"4 + 4" : 8,
                  "2 + 2 + 2" : 6,
                  "3 + 0 + 3 * 0" : 3}
 
+def colored(r, g, b, text):
+    return "\033[38;2;{};{};{}m{} \033[38;2;255;255;255m".format(r, g, b, text)
+
 def get_broadcast_message():
     magic_cookie = 0xabcddcba
     message_type = 0x02
@@ -126,8 +129,8 @@ def receive_clients_tcp():
 
 
 def main():
+    print(colored(81, 219, 233, 'Welcome to the Game server! :)'))
     print("Server started, listening on IP address", serverIP)
-
     threading.Thread(target=offer_udp).start()
     threading.Thread(target=receive_clients_tcp).start()
 
