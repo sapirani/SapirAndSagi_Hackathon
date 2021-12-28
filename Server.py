@@ -51,6 +51,10 @@ def offer_udp():
             server_socket.sendto(message, UDP_client_address)
         time.sleep(1)
 
+def select_random_question():
+    max_len = len(question_bank)
+    question_number = random.randint(0,max_len - 1)
+    return  list(question_bank)[question_number]
 
 def get_winner_name(socket_with_answer, first_client_socket, second_client_socket, first_player_name,
                     second_player_name, correct_answer):
@@ -65,11 +69,6 @@ def get_winner_name(socket_with_answer, first_client_socket, second_client_socke
             return second_player_name
         else:
             return first_player_name
-
-def select_random_question():
-    max_len = len(question_bank)
-    question_number = random.randint(0,max_len - 1)
-    return  list(question_bank)[question_number]
 
 def handle_clients(first_client_socket, second_client_socket):
     global is_in_game
