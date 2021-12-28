@@ -3,7 +3,7 @@ from socket import *
 import msvcrt
 
 client_name = "Team 1\n"
-clientIP = ''
+clientIP = '172.1.0.10'
 clientPort = 13117
 COOKIE_BYTES = 4
 TYPE_BYTES = 1
@@ -41,7 +41,7 @@ def connect_to_server(server_ip_address, server_tcp_port):
     clientSocket.connect((server_ip_address,server_tcp_port))
     clientSocket.send(client_name.encode())
     welcome_message = clientSocket.recv(1024)
-    print (welcome_message.decode()) # TODO: take care of newline and exceptions
+    print (welcome_message.decode()) # TODO: take care of exceptions
 
     user_digit = msvcrt.getch().decode()
     if (user_digit.isdigit()):
@@ -60,8 +60,8 @@ def main():
         print("Client started, listening for offer requests...")
         server_message, server_ip_address = look_for_server()
         
-        print("Server ip: " + server_ip_address)
-        print(server_message)
+        #print("Server ip: " + server_ip_address)
+        #print(server_message)
 
         server_tcp_port, legal_message = check_valid_message(server_message)
         if(legal_message):
