@@ -1,6 +1,7 @@
 from struct import *
 from socket import *
-import msvcrt
+import sys
+import select
 
 client_name = "Team 1\n"
 clientIP = '172.1.0.10'
@@ -43,11 +44,23 @@ def connect_to_server(server_ip_address, server_tcp_port):
     welcome_message = clientSocket.recv(1024)
     print (welcome_message.decode()) # TODO: take care of exceptions
 
-    user_digit = msvcrt.getch().decode()
-    if (user_digit.isdigit()):
-        digit_value = ord(user_digit) - ord('0')
-        clientSocket.send(digit_value.to_bytes(1, 'big'))
-        
+
+    read_sockets = [sys.stdin, clientSocket]
+
+    readable_sockets = select.select(read_sockets, [], [])[0]
+
+    if readable_sockets[0] is sys.stdin: #TODO: check if need to support messages before sever welcom message
+        old_settings = termios.tcgetattr(sys.stdin)
+        tty.setcbreak(sys.stdin.fileno())
+        user_answer = sys.stdin.read(1)
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+
+        if (user_answer.isdigit()):
+            digit_value = ord(user_answer) - ord('0')
+            clientSocket.send(digit_value.to_bytes(1, 'big'))
+    #else: 
+     #   server_message = clientSocket.recv(1024)
+
     game_results_message = clientSocket.recv(1024)
     print (game_results_message.decode())
     

@@ -4,10 +4,10 @@ from socket import *
 from struct import *
 import time
 
-serverIP = ''
+serverIP = '172.1.0.10'
 serverPort = 22222
 
-UDP_broadcast_IP = '192.168.1.255'
+UDP_broadcast_IP = '172.1.0.255'
 UDP_destination_port = 13117
 
 UDP_client_address = (UDP_broadcast_IP, UDP_destination_port)
