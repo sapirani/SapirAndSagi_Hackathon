@@ -22,6 +22,7 @@ UDP_destination_port = 13117
 UDP_client_address = (UDP_broadcast_IP, UDP_destination_port)
 
 is_in_game = False
+current_question_index = 0
 question_bank = {"4 + 4" : 8,
                  "5 + 2 - 1" : 6,
                  "5 * 2 - 1" : 9,
@@ -40,10 +41,54 @@ question_bank = {"4 + 4" : 8,
                  "2 + 2 + 2" : 6,
                  "3 + 0 + 3 * 0" : 3}
 
+game_statistics = { 0 : {},
+                    1 : {},
+                    2 : {},
+                    3 : {},
+                    4 : {},
+                    5 : {},
+                    6 : {},
+                    7 : {}, 
+                    8 : {}, 
+                    9 : {},
+                    10 : {},
+                    11 : {}, 
+                    12 : {}, 
+                    13 : {}, 
+                    14 : {},
+                    15 : {},
+                    16 : {},
+                    17 : {}}
+
 # Function to color the text that we print to the screen
 # The coloring format: first {} - red, second {} - green, third {} - blue, forth {} - the text to color
 def colored(r, g, b, text):
     return "\033[38;2;{};{};{}m{} \033[38;2;255;255;255m".format(r, g, b, text)
+
+def update_statistics(player_name):
+    flag = False
+    if current_question_index < len(game_statistics):
+        current_players_of_question = game_statistics[current_question_index]
+        for player,value in current_players_of_question:
+            if player == player_name:
+                game_statistics[current_question_index][player] = value + 1
+                flag = True
+
+    if flag == False:
+        game_statistics[current_question_index][player] = 1
+    
+def get_statistics():
+    player_with_max_answers = ""
+    max_answers = 0
+    for player,value in game_statistics[current_question_index]:
+            if value > max_answers:
+                player_with_max_answers = player
+                max_answers = value
+
+    if player_with_max_answers == "":
+        player_with_max_answers = "None!"
+
+    return player_with_max_answers
 
 # Build offer message
 def get_broadcast_message():
@@ -72,9 +117,11 @@ def offer_udp():
 
 # Get random question from the question bank (questions dictionary)
 def select_random_question():
+    global current_question_index
     try:
         max_len = len(question_bank)
         question_number = random.randint(0,max_len - 1)
+        current_question_index = question_number
         return  list(question_bank)[question_number]
     except:
         return  list(question_bank)[0] # TODO: can we skip it?
@@ -87,12 +134,14 @@ def get_winner_name(socket_with_answer, first_client_socket, second_client_socke
                     second_player_name, correct_answer):
     if socket_with_answer is first_client_socket: # The first client answered first
         if int.from_bytes(first_client_socket.recv(BYTE), ENDIAN) == correct_answer:
+            #update_statistics(first_player_name)
             return first_player_name # answer is correct
         else:
             return second_player_name # answer is incorrect
 
     else: # The second client answered first
         if int.from_bytes(second_client_socket.recv(BYTE), ENDIAN) == correct_answer:
+            #update_statistics(second_player_name)
             return second_player_name # answer is correct
         else:
             return first_player_name # answer is incorrect
@@ -135,6 +184,9 @@ def handle_clients(first_client_socket, second_client_socket):
                                     first_player_name, second_player_name, answer_to_the_question)
             game_message += "\n    Congratulations to the winner: {winner}\n".format(winner=winner)
 
+       
+        #game_message += "\n Some statistics about the question: The Team who answered this question correctly the most times is {team_name}".format(team_name=get_statistics())
+
         first_client_socket.send(game_message.encode())
         second_client_socket.send(game_message.encode())
 
@@ -144,12 +196,11 @@ def handle_clients(first_client_socket, second_client_socket):
 
 # Recieve two clients over TCP
 def receive_clients_tcp():
-    try:
-        server_socket = socket(AF_INET, SOCK_STREAM)
-        server_socket.bind((serverIP, serverPort))
-        server_socket.listen(1)
-    except:
-        print(colored(255, 0, 0, "Can't connect to the given ip or port.")) # TODO: need break? is it good?
+    
+    server_socket = socket(AF_INET, SOCK_STREAM)
+    server_socket.bind((serverIP, serverPort))
+    server_socket.listen(1)
+    # TODO: need break? is it good? need try catch?
     
     while True:
         try:
