@@ -5,6 +5,12 @@ from struct import *
 import time
 import random
 
+SECOND = 1
+BYTE = 1
+ENDIAN = 'big'
+MAX_BUF_SIZE = 1024
+TIMEOUT = 10
+
 serverIP = '172.1.0.10'
 serverPort = 22222
 
@@ -16,10 +22,10 @@ is_in_game = False
 
 question_bank = {"4 + 4" : 8,
                  "5 + 2 - 1" : 6,
-                 "5 * 2 - 1" : 9, 
-                 "1 + 2 * 3" : 7, 
+                 "5 * 2 - 1" : 9,
+                 "1 + 2 * 3" : 7,
                  "(1 + 1) * 2" : 4,
-                 "3 + 4 + 1" : 8, 
+                 "3 + 4 + 1" : 8,
                  "2 + 4 - 3" : 3,
                  "1 + 1 + 1 * 0 + 1 + 1 + 1 + 1" : 6,
                  "4 + 3 - 2" : 5,
@@ -51,7 +57,7 @@ def offer_udp():
         if not is_in_game:
             message = get_broadcast_message()
             server_socket.sendto(message, UDP_client_address)
-        time.sleep(1)
+        time.sleep(SECOND)
 
 def select_random_question():
     max_len = len(question_bank)
@@ -61,13 +67,13 @@ def select_random_question():
 def get_winner_name(socket_with_answer, first_client_socket, second_client_socket, first_player_name,
                     second_player_name, correct_answer):
     if socket_with_answer is first_client_socket:
-        if int.from_bytes(first_client_socket.recv(1), 'big') == correct_answer:
+        if int.from_bytes(first_client_socket.recv(BYTE), ENDIAN) == correct_answer:
             return first_player_name
         else:
             return second_player_name
 
     else:
-        if int.from_bytes(second_client_socket.recv(1), 'big') == correct_answer:
+        if int.from_bytes(second_client_socket.recv(BYTE), ENDIAN) == correct_answer:
             return second_player_name
         else:
             return first_player_name
@@ -75,13 +81,13 @@ def get_winner_name(socket_with_answer, first_client_socket, second_client_socke
 def handle_clients(first_client_socket, second_client_socket):
     global is_in_game
     is_in_game = True
-    first_player_name = first_client_socket.recv(1024).decode()
-    second_player_name = second_client_socket.recv(1024).decode()
+    first_player_name = first_client_socket.recv(MAX_BUF_SIZE).decode()
+    second_player_name = second_client_socket.recv(MAX_BUF_SIZE).decode()
 
     selected_question = select_random_question()
     answer_to_the_question = question_bank.get(selected_question)
     message = """
-    Welcome to Quick Maths.
+    Quick Maths Is Starting!
     Player 1: {first_player_name}
     Player 2: {second_player_name}
     ================================ 
@@ -92,19 +98,19 @@ def handle_clients(first_client_socket, second_client_socket):
     first_client_socket.send(message.encode())
     second_client_socket.send(message.encode())
 
-    readable, _, _ = select.select([first_client_socket, second_client_socket], [], [], 10)
+    readable, _, _ = select.select([first_client_socket, second_client_socket], [], [], TIMEOUT)
 
     game_message = """
     Game over!
     The correct answer was {answer}!""".format(answer=answer_to_the_question)
 
     if len(readable) == 0:
-        game_message += "\nGame result: Draw\n"
+        game_message += "\n    Game result: Draw\n"
 
     else:
         winner = get_winner_name(readable[0], first_client_socket, second_client_socket,
                                  first_player_name, second_player_name, answer_to_the_question)
-        game_message += "\nCongratulations to the winner: {winner}\n".format(winner=winner)
+        game_message += "\n    Congratulations to the winner: {winner}\n".format(winner=winner)
 
     first_client_socket.send(game_message.encode())
     second_client_socket.send(game_message.encode())
