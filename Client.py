@@ -1,3 +1,4 @@
+# Import:
 from struct import *
 from socket import *
 import sys
@@ -5,6 +6,7 @@ import select
 import termios
 import tty
 
+# Defines:
 COOKIE_BYTES = 4
 TYPE_BYTES = 1
 TCP_PORT_BYTES = 2
@@ -16,15 +18,18 @@ ENDIAN = 'big'
 MAX_BUF_SIZE = 1024
 TIMEOUT = 10
 
+# Global Variables:
 client_name = "Team 1"
 clientIP = '172.1.0.10'
 clientPort = 13117
 
+# Function to color the text that we print to the screen
+# The coloring format: first {} - red, second {} - green, third {} - blue, forth {} - the text to color
 def colored(r, g, b, text):
     return "\033[38;2;{};{};{}m{} \033[38;2;255;255;255m".format(r, g, b, text)
 
 
-# Wait for Offer message from one of the servers
+# Wait for Offer message from one of the available servers
 def look_for_server():
     clientSocket = socket(AF_INET, SOCK_DGRAM)  # create UDP socket
     clientSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -49,38 +54,37 @@ def check_valid_message(message):
 
     return server_tcp_port, flag;
 
-
+# If the UDP offer message has the correct format, then connect to the offering server
 def connect_to_server(server_ip_address, server_tcp_port):
     print(colored(197, 39, 229, "Received offer from " + server_ip_address + ", attempting to connect..."))
     clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.connect((server_ip_address, server_tcp_port))
-    clientSocket.send((client_name + '\n').encode())
-    welcome_message = clientSocket.recv(MAX_BUF_SIZE)
-    print(welcome_message.decode())  # TODO: take care of exceptions
+    clientSocket.send((client_name + '\n').encode()) # Send the team name to the server with \n in the end.
+    start_game_message = clientSocket.recv(MAX_BUF_SIZE) # Receive game starting message and question
+    print(start_game_message.decode())  # TODO: take care of exceptions
 
+    # The selctor knows to do both receiving messages from the server and recieve input from the keyboard
     read_sockets = [sys.stdin, clientSocket]
-
-    old_settings = termios.tcgetattr(sys.stdin)
+    old_info_stdin = termios.tcgetattr(sys.stdin)
     tty.setcbreak(sys.stdin.fileno())
     readable_sockets = select.select(read_sockets, [], [])[0]
-    if readable_sockets[0] is sys.stdin:  # TODO: check if need to support messages before server welcom message
+    if readable_sockets[0] is sys.stdin: # If we need to read input from the keyboard
+        # TODO: check if need to support messages before server welcom message
 
-        user_answer = sys.stdin.read(BYTE)
+        user_answer = sys.stdin.read(BYTE) # Read one digit in a non blocking way
+        print(colored(242, 155, 26, user_answer)) # Print the digit to the screen
 
-        print(user_answer)
-
-        if (user_answer.isdigit()):
+        if (user_answer.isdigit()): # If the input is really a digit
             digit_value = ord(user_answer) - ord('0')
-            clientSocket.send(digit_value.to_bytes(1, ENDIAN))
+            clientSocket.send(digit_value.to_bytes(1, ENDIAN)) # Send the input to the answer as it's value and not in ascii
     # else:
     #   server_message = clientSocket.recv(1024)
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_info_stdin)
 
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-
-    game_results_message = clientSocket.recv(MAX_BUF_SIZE)
+    game_results_message = clientSocket.recv(MAX_BUF_SIZE) # Get the game result from the server
     print(colored(25, 239, 25, game_results_message.decode()))
 
-    clientSocket.close()
+    clientSocket.close() # close TCP socket
 
 
 def main():
