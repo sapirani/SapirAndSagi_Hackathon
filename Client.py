@@ -1,5 +1,6 @@
 from struct import *
 from socket import *
+import msvcrt
 
 client_name = "Team 1\n"
 clientIP = ''
@@ -40,8 +41,15 @@ def connect_to_server(server_ip_address, server_tcp_port):
     clientSocket.connect((server_ip_address,server_tcp_port))
     clientSocket.send(client_name.encode())
     welcome_message = clientSocket.recv(1024)
-    print (welcome_message) # TODO: take care of newline and exceptions
+    print (welcome_message.decode()) # TODO: take care of newline and exceptions
 
+    user_digit = msvcrt.getch().decode()
+    if (user_digit.isdigit()):
+        digit_value = ord(user_digit) - ord('0')
+        clientSocket.send(digit_value.to_bytes(1, 'big'))
+        
+    game_results_message = clientSocket.recv(1024)
+    print (game_results_message.decode())
     
     clientSocket.close()
 
