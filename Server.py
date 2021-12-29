@@ -18,7 +18,7 @@ serverIP = '172.1.0.10'
 serverTCPPort = 22222
 
 UDP_broadcast_IP = '172.1.255.255'
-UDP_destination_port = 13119
+UDP_destination_port = 13117
 serverUDPPort = 12222
 UDP_client_address = (UDP_broadcast_IP, UDP_destination_port)
 

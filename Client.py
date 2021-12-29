@@ -21,7 +21,7 @@ TIMEOUT = 10
 # Global Variables:
 client_name = "Team 1"
 clientIP = ''
-clientPort = 13119
+clientPort = 13117
 
 # Function to color the text that we print to the screen
 # The coloring format: first {} - red, second {} - green, third {} - blue, forth {} - the text to color
