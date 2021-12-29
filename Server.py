@@ -104,6 +104,11 @@ def select_random_question():
     current_question_index = question_number
     return list(question_bank)[question_number]
 
+
+def send_game_message(client_socket, message):
+    client_socket.send(message.encode())
+
+
 # Get the name of the winning team.
 # If the first client answerd first and correctly, he wins.
 # If the second client answerd first and correctly, he wins.
@@ -144,8 +149,10 @@ def handle_clients(first_client_socket, second_client_socket):
         {question}""".format(first_player_name=first_player_name,
                                 second_player_name=second_player_name, question=selected_question)
 
-        first_client_socket.send(message.encode())
-        second_client_socket.send(message.encode())
+        #first_client_socket.send(message.encode())
+        #second_client_socket.send(message.encode())
+        threading.Thread(target=send_game_message, args=(first_client_socket, message)).start()
+        threading.Thread(target=send_game_message, args=(second_client_socket, message)).start()
 
         # The selector knows which client answered first.
         readable, _, _ = select.select([first_client_socket, second_client_socket], [], [], TIMEOUT)
