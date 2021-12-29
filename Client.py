@@ -20,8 +20,8 @@ TIMEOUT = 10
 
 # Global Variables:
 client_name = "Team 1"
-clientIP = '172.1.0.10'
-clientPort = 13117
+clientIP = ''
+clientPort = 13119
 
 # Function to color the text that we print to the screen
 # The coloring format: first {} - red, second {} - green, third {} - blue, forth {} - the text to color
@@ -34,18 +34,23 @@ def look_for_server():
     try:
         clientSocket = socket(AF_INET, SOCK_DGRAM)  # create UDP socket
         clientSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        clientSocket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1) 
         clientSocket.bind((clientIP, clientPort))
         server_message, server_address = clientSocket.recvfrom(2048)  # receive message from server
-        clientSocket.close()  # close UDP connection
         return server_message, server_address[0]
+    
+    except KeyboardInterrupt:
+        print(colored(247, 21, 37, "Good bye :)"))
+        quit()
+
     except:
-        print(colored(255, 0, 0, "Somthing went wrong with the UDP connection."))
+        print(colored(255, 0, 0, "Something went wrong with the UDP connection."))
 
 
 # Check if the received UDP message is a legal offer message
 def check_valid_message(message):
     flag = False
-    cookie, type, server_tcp_port = unpack('!IBh', message)
+    cookie, type, server_tcp_port = unpack('=IbH', message)
     if (cookie != COOKIE_KEY):
         print(colored(238, 30, 30, "Received message with wrong cookie. Keep waiting for offers \n"))
 
@@ -79,8 +84,7 @@ def connect_to_server(server_ip_address, server_tcp_port):
             print(colored(242, 155, 26, user_answer)) # Print the digit to the screen
 
             if (user_answer.isdigit()): # If the input is really a digit
-                digit_value = ord(user_answer) - ord('0')
-                clientSocket.send(digit_value.to_bytes(1, ENDIAN)) # Send the input to the answer as it's value and not in ascii
+                clientSocket.send(user_answer.encode("utf-8")) # Send the input to the answer as it's value and not in ascii
         # else:
         #   server_message = clientSocket.recv(1024)
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_info_stdin)
@@ -88,15 +92,25 @@ def connect_to_server(server_ip_address, server_tcp_port):
         game_results_message = clientSocket.recv(MAX_BUF_SIZE) # Get the game result from the server
         print(colored(25, 239, 25, game_results_message.decode()))
 
-        clientSocket.close() # close TCP socket
+        print(colored(58, 210, 120, "Server disconnected, listening for offer requests..."))
+    
+    except KeyboardInterrupt:
+        print(colored(247, 21, 37, "Good bye :)"))
+        quit()
+
     except:
         print(colored(255, 0, 0, "Somthing went wrong with the TCP connection."))
 
+    finally:
+        clientSocket.close() # close TCP socket
+
 def main():
+    print(colored(81, 219, 233, 'Welcome to the Game, client! :)'))
+    print(colored(42, 115, 234, "Team name: " + client_name))
+    print(colored(236, 242, 8, "Client started, listening for offer requests..."))
+
     while True:
-        print(colored(81, 219, 233, 'Welcome to the Game client! :)'))
-        print(colored(42, 115, 234, "Team name: " + client_name))
-        print(colored(236, 242, 8, "Client started, listening for offer requests..."))
+        
         server_message, server_ip_address = look_for_server()
         # print("Server ip: " + server_ip_address)
         # print(server_message)
