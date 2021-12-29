@@ -36,7 +36,6 @@ def look_for_server():
         clientSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         clientSocket.bind((clientIP, clientPort))
         server_message, server_address = clientSocket.recvfrom(2048)  # receive message from server
-        clientSocket.close()  # close UDP connection
         return server_message, server_address[0]
     
     except KeyboardInterrupt:
@@ -44,7 +43,10 @@ def look_for_server():
         quit()
 
     except:
-        print(colored(255, 0, 0, "Somthing went wrong with the UDP connection."))
+        print(colored(255, 0, 0, "Something went wrong with the UDP connection."))
+
+    finally:
+        clientSocket.close()  # close UDP connection
 
 
 # Check if the received UDP message is a legal offer message
@@ -93,7 +95,6 @@ def connect_to_server(server_ip_address, server_tcp_port):
         game_results_message = clientSocket.recv(MAX_BUF_SIZE) # Get the game result from the server
         print(colored(25, 239, 25, game_results_message.decode()))
 
-        clientSocket.close() # close TCP socket
         print(colored(58, 210, 120, "Server disconnected, listening for offer requests..."))
     
     except KeyboardInterrupt:
@@ -103,11 +104,16 @@ def connect_to_server(server_ip_address, server_tcp_port):
     except:
         print(colored(255, 0, 0, "Somthing went wrong with the TCP connection."))
 
+    finally:
+        clientSocket.close() # close TCP socket
+
 def main():
+    print(colored(81, 219, 233, 'Welcome to the Game, client! :)'))
+    print(colored(42, 115, 234, "Team name: " + client_name))
+    print(colored(236, 242, 8, "Client started, listening for offer requests..."))
+
     while True:
-        print(colored(81, 219, 233, 'Welcome to the Game client! :)'))
-        print(colored(42, 115, 234, "Team name: " + client_name))
-        print(colored(236, 242, 8, "Client started, listening for offer requests..."))
+        
         server_message, server_ip_address = look_for_server()
         # print("Server ip: " + server_ip_address)
         # print(server_message)

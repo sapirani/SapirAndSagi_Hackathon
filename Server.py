@@ -199,12 +199,7 @@ def receive_clients_tcp():
             connection_socket_first_client.close()
             connection_socket_second_client.close()
 
-            print(colored(58, 210, 120, "Game over, sending out offer requests..."))
-        
-        except KeyboardInterrupt:
-            print(colored(247, 21, 37, "Good bye :)"))
-            quit()
-            
+            print(colored(58, 210, 120, "Game over, sending out offer requests..."))            
         except:
             continue
 
@@ -212,8 +207,14 @@ def receive_clients_tcp():
 def main():
     print(colored(81, 219, 233, 'Welcome to the Game server! :)'))
     print(colored(236,242,8, "Server started, listening on IP address " + serverIP))
-    threading.Thread(target=offer_udp).start()
-    threading.Thread(target=receive_clients_tcp).start()
+
+    try:
+        threading.Thread(target=offer_udp).start()
+        threading.Thread(target=receive_clients_tcp).start()
+    
+    except KeyboardInterrupt:
+        print(colored(247, 21, 37, "Good bye :)"))
+        quit()
 
 
 if __name__ == "__main__":
