@@ -34,6 +34,7 @@ def look_for_server():
     try:
         clientSocket = socket(AF_INET, SOCK_DGRAM)  # create UDP socket
         clientSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        clientSocket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1) 
         clientSocket.bind((clientIP, clientPort))
         server_message, server_address = clientSocket.recvfrom(2048)  # receive message from server
         return server_message, server_address[0]
