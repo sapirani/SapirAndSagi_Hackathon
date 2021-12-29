@@ -17,7 +17,7 @@ TIMEOUT = 10
 serverIP = '172.1.0.10'
 serverTCPPort = 22222
 
-UDP_broadcast_IP = '172.1.0.10'
+UDP_broadcast_IP = '172.1.255.255'
 UDP_destination_port = 13117
 serverUDPPort = 12222
 UDP_client_address = (UDP_broadcast_IP, UDP_destination_port)
@@ -76,12 +76,10 @@ def get_broadcast_message():
 
 # Send offer message over broadcast in UDP
 def offer_udp():
-    try:
-        server_socket = socket(AF_INET, SOCK_DGRAM)
-        server_socket.bind((serverIP, serverUDPPort))
-    except:
-        print(colored(255, 0, 0, "Can't connect to the given ip or port.")) # TODO: need break? is it good?
-
+    server_socket = socket(AF_INET, SOCK_DGRAM)
+    server_socket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1) 
+    server_socket.bind((serverIP, serverUDPPort))
+    
     while True:
         try:
             if not is_in_game: # If the server allready has 2 clients connected and the game started, don't look for new clients
@@ -182,13 +180,9 @@ def handle_clients(first_client_socket, second_client_socket):
 
 # Recieve two clients over TCP
 def receive_clients_tcp():
-    
-    try:
-        server_socket = socket(AF_INET, SOCK_STREAM)
-        server_socket.bind((serverIP, serverTCPPort))
-        server_socket.listen(1)
-    except:
-        print(colored(255, 0, 0, "Can't connect to the given ip or port.")) # TODO: need break? is it good?
+    server_socket = socket(AF_INET, SOCK_STREAM)
+    server_socket.bind((serverIP, serverTCPPort))
+    server_socket.listen(1)
     
     while True:
         try:
@@ -212,8 +206,14 @@ def main():
     print(colored(236,242,8, "Server started, listening on IP address " + serverIP))
 
     try:
-        threading.Thread(target=offer_udp).start()
-        threading.Thread(target=receive_clients_tcp).start()
+        offer_messages_thread = threading.Thread(target=offer_udp)
+        tcp_connection_thread = threading.Thread(target=receive_clients_tcp)
+
+        #offer_messages_thread.setDaemon(True)
+        #tcp_connection_thread.setDaemon(True)
+
+        offer_messages_thread.start()
+        tcp_connection_thread.start()
     
     except KeyboardInterrupt:
         print(colored(247, 21, 37, "Good bye :)"))
