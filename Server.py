@@ -41,54 +41,29 @@ question_bank = {"4 + 4" : 8,
                  "2 + 2 + 2" : 6,
                  "3 + 0 + 3 * 0" : 3}
 
-game_statistics = { 0 : {},
-                    1 : {},
-                    2 : {},
-                    3 : {},
-                    4 : {},
-                    5 : {},
-                    6 : {},
-                    7 : {}, 
-                    8 : {}, 
-                    9 : {},
-                    10 : {},
-                    11 : {}, 
-                    12 : {}, 
-                    13 : {}, 
-                    14 : {},
-                    15 : {},
-                    16 : {},
-                    17 : {}}
+game_statistics = [dict() for x in range(len(question_bank))]
+
 
 # Function to color the text that we print to the screen
 # The coloring format: first {} - red, second {} - green, third {} - blue, forth {} - the text to color
 def colored(r, g, b, text):
     return "\033[38;2;{};{};{}m{} \033[38;2;255;255;255m".format(r, g, b, text)
 
+
 def update_statistics(player_name):
-    flag = False
-    if current_question_index < len(game_statistics):
-        current_players_of_question = game_statistics[current_question_index]
-        for player,value in current_players_of_question:
-            if player == player_name:
-                game_statistics[current_question_index][player] = value + 1
-                flag = True
+    current_players_of_question = game_statistics[current_question_index]
+    if player_name in current_players_of_question:
+        current_players_of_question[player_name] += 1
+    else:
+        current_players_of_question[player_name] = 1
 
-    if flag == False:
-        game_statistics[current_question_index][player] = 1
-    
+
 def get_statistics():
-    player_with_max_answers = ""
-    max_answers = 0
-    for player,value in game_statistics[current_question_index]:
-            if value > max_answers:
-                player_with_max_answers = player
-                max_answers = value
+    question_dict = game_statistics[current_question_index]
+    if len(question_dict) == 0:
+        return "None!"
+    return max(question_dict, key= lambda x: question_dict[x])
 
-    if player_with_max_answers == "":
-        player_with_max_answers = "None!"
-
-    return player_with_max_answers
 
 # Build offer message
 def get_broadcast_message():
@@ -115,16 +90,14 @@ def offer_udp():
         except:
             continue
 
+
 # Get random question from the question bank (questions dictionary)
 def select_random_question():
     global current_question_index
-    try:
-        max_len = len(question_bank)
-        question_number = random.randint(0,max_len - 1)
-        current_question_index = question_number
-        return  list(question_bank)[question_number]
-    except:
-        return  list(question_bank)[0] # TODO: can we skip it?
+    max_len = len(question_bank)
+    question_number = random.randint(0, max_len - 1)
+    current_question_index = question_number
+    return list(question_bank)[question_number]
 
 # Get the name of the winning team.
 # If the first client answerd first and correctly, he wins.
