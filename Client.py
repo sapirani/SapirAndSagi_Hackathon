@@ -19,7 +19,7 @@ MAX_BUF_SIZE = 1024
 TIMEOUT = 10
 
 # Global Variables:
-client_name = "Team 1"
+client_name = "Hackathon of bytes"
 clientIP = ''
 clientPort = 13117
 
@@ -36,7 +36,7 @@ def look_for_server():
         clientSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         clientSocket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1) 
         clientSocket.bind((clientIP, clientPort))
-        server_message, server_address = clientSocket.recvfrom(2048)  # receive message from server
+        server_message, server_address = clientSocket.recvfrom(MAX_BUF_SIZE)  # receive message from server
         return server_message, server_address[0]
     
     except KeyboardInterrupt:
@@ -47,10 +47,9 @@ def look_for_server():
         print(colored(255, 0, 0, "Something went wrong with the UDP connection."))
 
 
-# Check if the received UDP message is a legal offer message
-def check_valid_message(message):
+def check_message_details(cookie, type, server_tcp_port):
     flag = False
-    cookie, type, server_tcp_port = unpack('=IbH', message)
+
     if (cookie != COOKIE_KEY):
         print(colored(238, 30, 30, "Received message with wrong cookie. Keep waiting for offers \n"))
 
@@ -60,7 +59,41 @@ def check_valid_message(message):
     else:
         flag = True
 
-    return server_tcp_port, flag;
+    return server_tcp_port, flag
+
+
+# Check if the received UDP message is a legal offer message
+def check_valid_message(message):
+    cookie = None
+    type = None
+    server_tcp_port = None
+
+    try:
+        cookie, type, server_tcp_port = unpack('=IbH', message)
+        return check_message_details(cookie, type, server_tcp_port)
+    except:
+        pass
+
+    try:
+        cookie, type, server_tcp_port = unpack('IbH', message)
+        return check_message_details(cookie, type, server_tcp_port)
+    except:
+        pass
+
+    try:
+        cookie, type, server_tcp_port = unpack('>4sbH', message)
+        return check_message_details(cookie, type, server_tcp_port)
+    except:
+        pass
+
+    try:
+        cookie, type, server_tcp_port = unpack('<4sbH', message)
+        return check_message_details(cookie, type, server_tcp_port)
+    except:
+        pass
+
+    return None, False
+    
 
 # If the UDP offer message has the correct format, then connect to the offering server
 def connect_to_server(server_ip_address, server_tcp_port):
