@@ -15,10 +15,11 @@ TIMEOUT = 10
 
 # Global Variables:
 serverIP = '172.1.0.10'
-serverPort = 22222
+serverTCPPort = 22222
 
 UDP_broadcast_IP = '172.1.0.10'
 UDP_destination_port = 13117
+serverUDPPort = 12222
 UDP_client_address = (UDP_broadcast_IP, UDP_destination_port)
 
 is_in_game = False
@@ -69,7 +70,7 @@ def get_statistics():
 def get_broadcast_message():
     magic_cookie = 0xabcddcba
     message_type = 0x02
-    server_port = serverPort
+    server_port = serverTCPPort
     sending_format = '!IBh' # The bytes format
     return pack(sending_format, magic_cookie, message_type, server_port)
 
@@ -77,7 +78,7 @@ def get_broadcast_message():
 def offer_udp():
     try:
         server_socket = socket(AF_INET, SOCK_DGRAM)
-        server_socket.bind((serverIP, serverPort))
+        server_socket.bind((serverIP, serverUDPPort))
     except:
         print(colored(255, 0, 0, "Can't connect to the given ip or port.")) # TODO: need break? is it good?
 
@@ -182,10 +183,12 @@ def handle_clients(first_client_socket, second_client_socket):
 # Recieve two clients over TCP
 def receive_clients_tcp():
     
-    server_socket = socket(AF_INET, SOCK_STREAM)
-    server_socket.bind((serverIP, serverPort))
-    server_socket.listen(1)
-    # TODO: need break? is it good? need try catch?
+    try:
+        server_socket = socket(AF_INET, SOCK_STREAM)
+        server_socket.bind((serverIP, serverTCPPort))
+        server_socket.listen(1)
+    except:
+        print(colored(255, 0, 0, "Can't connect to the given ip or port.")) # TODO: need break? is it good?
     
     while True:
         try:
