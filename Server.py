@@ -87,6 +87,11 @@ def offer_udp():
                 message = get_broadcast_message()
                 server_socket.sendto(message, UDP_client_address)
             time.sleep(SECOND)
+        
+        except KeyboardInterrupt:
+            print(colored(247, 21, 37, "Good bye :)"))
+            quit()
+        
         except:
             continue
 
@@ -107,14 +112,14 @@ def get_winner_name(socket_with_answer, first_client_socket, second_client_socke
                     second_player_name, correct_answer):
     if socket_with_answer is first_client_socket: # The first client answered first
         if int.from_bytes(first_client_socket.recv(BYTE), ENDIAN) == correct_answer:
-            #update_statistics(first_player_name)
+            update_statistics(first_player_name)
             return first_player_name # answer is correct
         else:
             return second_player_name # answer is incorrect
 
     else: # The second client answered first
         if int.from_bytes(second_client_socket.recv(BYTE), ENDIAN) == correct_answer:
-            #update_statistics(second_player_name)
+            update_statistics(second_player_name)
             return second_player_name # answer is correct
         else:
             return first_player_name # answer is incorrect
@@ -158,7 +163,7 @@ def handle_clients(first_client_socket, second_client_socket):
             game_message += "\n    Congratulations to the winner: {winner}\n".format(winner=winner)
 
        
-        #game_message += "\n Some statistics about the question: The Team who answered this question correctly the most times is {team_name}".format(team_name=get_statistics())
+        game_message += "\n Some statistics about the question: The Team who answered this question correctly the most times is {team_name}".format(team_name=get_statistics())
 
         first_client_socket.send(game_message.encode())
         second_client_socket.send(game_message.encode())
@@ -180,10 +185,19 @@ def receive_clients_tcp():
             connection_socket_first_client, addr = server_socket.accept()
             connection_socket_second_client, addr = server_socket.accept()
 
+            print(colored(244, 61, 24, "The game is starting, sending out the question."))
+
             handle_clients(connection_socket_first_client, connection_socket_second_client)
 
             connection_socket_first_client.close()
             connection_socket_second_client.close()
+
+            print(colored(58, 210, 120, "Game over, sending out offer requests..."))
+        
+        except KeyboardInterrupt:
+            print(colored(247, 21, 37, "Good bye :)"))
+            quit()
+            
         except:
             continue
 

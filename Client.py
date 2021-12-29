@@ -19,7 +19,7 @@ MAX_BUF_SIZE = 1024
 TIMEOUT = 10
 
 # Global Variables:
-client_name = "Team 1"
+client_name = "Team 2"
 clientIP = '172.1.0.10'
 clientPort = 13117
 
@@ -38,6 +38,11 @@ def look_for_server():
         server_message, server_address = clientSocket.recvfrom(2048)  # receive message from server
         clientSocket.close()  # close UDP connection
         return server_message, server_address[0]
+    
+    except KeyboardInterrupt:
+        print(colored(247, 21, 37, "Good bye :)"))
+        quit()
+
     except:
         print(colored(255, 0, 0, "Somthing went wrong with the UDP connection."))
 
@@ -89,6 +94,12 @@ def connect_to_server(server_ip_address, server_tcp_port):
         print(colored(25, 239, 25, game_results_message.decode()))
 
         clientSocket.close() # close TCP socket
+        print(colored(58, 210, 120, "Server disconnected, listening for offer requests..."))
+    
+    except KeyboardInterrupt:
+        print(colored(247, 21, 37, "Good bye :)"))
+        quit()
+
     except:
         print(colored(255, 0, 0, "Somthing went wrong with the TCP connection."))
 
